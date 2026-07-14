@@ -1,0 +1,37 @@
+[Unit]
+Description=Active Directory profile management service
+After=network.target
+
+[Service]
+Type=simple
+User=adprofd
+Group=adprofd
+EnvironmentFile=/etc/adprofd/adprofd.env
+ExecStart=/usr/local/bin/adprofd
+WorkingDirectory=/var/lib/adprofd
+
+StateDirectory=adprofd
+StateDirectoryMode=0700
+UMask=0077
+
+Restart=on-failure
+RestartSec=5s
+
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

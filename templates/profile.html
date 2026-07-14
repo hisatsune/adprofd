@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/cropper.min.js" defer></script>
+  <script src="/static/profile.js" defer></script>
+</head>
+<body>
+  <main class="profile-page">
+    <section class="profile-card">
+      <header class="profile-header">
+        <div>
+          <h1>プロフィール編集</h1>
+          <p class="description">AD に登録されているプロフィール情報を編集します。</p>
+        </div>
+
+        {{if not .ProxyAuthenticated}}
+          <form method="post" action="{{urlFor "logout"}}">
+            <button type="submit" class="secondary-button">ログアウト</button>
+          </form>
+        {{end}}
+      </header>
+
+      {{if .Error}}
+        <div class="error" role="alert">{{.Error}}</div>
+      {{end}}
+
+      {{if .Success}}
+        <div class="success" role="status">{{.Success}}</div>
+      {{end}}
+
+      <form method="post" action="{{urlFor "profile"}}" enctype="multipart/form-data" class="profile-form">
+        <div class="profile-grid">
+          <section class="profile-section" aria-labelledby="basic-heading">
+            <h2 id="basic-heading">基本情報</h2>
+
+            <div class="photo-row">
+              <button
+                id="photo_button"
+                type="button"
+                class="photo-button"
+                aria-label="プロフィール写真を選択"
+                aria-describedby="photo_help"
+              >
+                <img
+                  id="profile_photo"
+                  src="{{.PhotoURL}}"
+                  alt="プロフィール写真"
+                  {{if not .PhotoURL}}hidden{{end}}
+                >
+                <span id="profile_photo_placeholder" {{if .PhotoURL}}hidden{{end}}>写真</span>
+              </button>
+
+              <div id="photo_help" class="photo-help">
+                <p>写真を変更する場合はクリックしてください。</p>
+                <p>JPEG / PNG から正方形に切り抜きます。</p>
+
+                <p id="photo_client_error" class="field-error" role="alert" hidden></p>
+                <p id="photo_client_status" class="field-success" role="status" hidden></p>
+
+                {{with index .FieldErrors "photo"}}
+                  <p class="field-error">{{.}}</p>
+                {{end}}
+
+                {{if index .FieldOK "photo"}}
+                  <p class="field-success">保存しました。</p>
+                {{end}}
+              </div>
+            </div>
+
+            <input id="photo_input" type="file" accept="image/jpeg,image/png" hidden>
+            <input id="photo_base64" name="photo_base64" type="hidden">
+            <input id="photo_changed" name="photo_changed" type="hidden" value="0">
+
+            <dialog id="photo_crop_dialog" class="photo-crop-dialog" aria-labelledby="photo_crop_title">
+              <div class="photo-crop-panel">
+                <header class="photo-crop-header">
+                  <div>
+                    <h3 id="photo_crop_title">プロフィール写真を切り抜く</h3>
+                    <p>正方形の枠を移動・拡縮して使用する範囲を選んでください。</p>
+                  </div>
+                  <button id="photo_crop_close" type="button" class="dialog-close-button" aria-label="閉じる">×</button>
+                </header>
+
+                <div id="photo_cropper" class="photo-cropper"></div>
+
+                <div class="photo-crop-toolbar" aria-label="画像の拡大縮小">
+                  <button id="photo_zoom_out" type="button" class="secondary-button">縮小</button>
+                  <button id="photo_crop_reset" type="button" class="secondary-button">リセット</button>
+                  <button id="photo_zoom_in" type="button" class="secondary-button">拡大</button>
+                </div>
+
+                <p id="photo_crop_error" class="field-error" role="alert" hidden></p>
+
+                <footer class="photo-crop-actions">
+                  <button id="photo_crop_cancel" type="button" class="secondary-button">キャンセル</button>
+                  <button id="photo_crop_apply" type="button">この範囲を使用</button>
+                </footer>
+              </div>
+            </dialog>
+
+            <div class="field">
+              <label for="nickname">表示名</label>
+              <input id="nickname" name="nickname" type="text" value="{{.Nickname}}" autocomplete="nickname">
+              {{with index .FieldErrors "nickname"}}
+                <p class="field-error">{{.}}</p>
+              {{end}}
+              {{if index .FieldOK "nickname"}}
+                <p class="field-success">保存しました。</p>
+              {{end}}
+            </div>
+
+            <div class="two-columns">
+              <div class="field">
+                <span class="field-label">姓</span>
+                <div class="readonly-field">{{.LastName}}</div>
+              </div>
+
+              <div class="field">
+                <span class="field-label">名</span>
+                <div class="readonly-field">{{.FirstName}}</div>
+              </div>
+            </div>
+
+            <div class="two-columns">
+              <div class="field">
+                <label for="last_name_kana">せい</label>
+                <input id="last_name_kana" name="last_name_kana" value="{{.LastNameKana}}">
+                {{with index .FieldErrors "last_name_kana"}}
+                  <p class="field-error">{{.}}</p>
+                {{end}}
+                {{if index .FieldOK "last_name_kana"}}
+                  <p class="field-success">保存しました。</p>
+                {{end}}
+              </div>
+
+              <div class="field">
+                <label for="first_name_kana">めい</label>
+                <input id="first_name_kana" name="first_name_kana" value="{{.FirstNameKana}}">
+                {{with index .FieldErrors "first_name_kana"}}
+                  <p class="field-error">{{.}}</p>
+                {{end}}
+                {{if index .FieldOK "first_name_kana"}}
+                  <p class="field-success">保存しました。</p>
+                {{end}}
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="field-label">メールアドレス</span>
+              <div class="readonly-field">{{.Email}}</div>
+            </div>
+          </section>
+
+          <section class="profile-section" aria-labelledby="contact-heading">
+            <h2 id="contact-heading">連絡先・住所</h2>
+
+            <div class="field">
+              <label for="phone">電話番号</label>
+              <input id="phone" name="phone" value="{{.Phone}}" autocomplete="tel">
+              {{with index .FieldErrors "phone"}}
+                <p class="field-error">{{.}}</p>
+              {{end}}
+              {{if index .FieldOK "phone"}}
+                <p class="field-success">保存しました。</p>
+              {{end}}
+            </div>
+
+            <div class="two-columns">
+              <div class="field">
+                <label for="postal_code">郵便番号</label>
+                <input id="postal_code" name="postal_code" value="{{.PostalCode}}" autocomplete="postal-code">
+                {{with index .FieldErrors "postal_code"}}
+                  <p class="field-error">{{.}}</p>
+                {{end}}
+                {{if index .FieldOK "postal_code"}}
+                  <p class="field-success">保存しました。</p>
+                {{end}}
+              </div>
+
+              <div class="field">
+                <label for="prefecture">都道府県</label>
+                <input id="prefecture" name="prefecture" value="{{.Prefecture}}" autocomplete="address-level1">
+                {{with index .FieldErrors "prefecture"}}
+                  <p class="field-error">{{.}}</p>
+                {{end}}
+                {{if index .FieldOK "prefecture"}}
+                  <p class="field-success">保存しました。</p>
+                {{end}}
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="city">市区町村</label>
+              <input id="city" name="city" value="{{.City}}" autocomplete="address-level2">
+              {{with index .FieldErrors "city"}}
+                <p class="field-error">{{.}}</p>
+              {{end}}
+              {{if index .FieldOK "city"}}
+                <p class="field-success">保存しました。</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <label for="street">番地・建物・部屋番号</label>
+              <input id="street" name="street" value="{{.Street}}" autocomplete="street-address">
+              {{with index .FieldErrors "street"}}
+                <p class="field-error">{{.}}</p>
+              {{end}}
+              {{if index .FieldOK "street"}}
+                <p class="field-success">保存しました。</p>
+              {{end}}
+            </div>
+          </section>
+        </div>
+
+        <section class="profile-section password-section" aria-labelledby="password-heading">
+          <h2 id="password-heading">パスワード変更</h2>
+
+          <p id="password_help" class="description">
+            変更する場合のみ入力してください。変更後は、新しいパスワードでの再ログインが必要です。
+          </p>
+
+          <div class="two-columns password-fields">
+            <div class="field">
+              <label for="current_password">現在のパスワード</label>
+              <input
+                id="current_password"
+                name="current_password"
+                type="password"
+                autocomplete="current-password"
+                aria-describedby="password_help"
+              >
+              {{with index .FieldErrors "current_password"}}
+                <p class="field-error">{{.}}</p>
+              {{end}}
+            </div>
+          </div>
+
+          <div class="two-columns password-fields">
+            <div class="field">
+              <label for="new_password">新しいパスワード</label>
+              <input
+                id="new_password"
+                name="new_password"
+                type="password"
+                autocomplete="new-password"
+                aria-describedby="password_help"
+              >
+              {{with index .FieldErrors "new_password"}}
+                <p class="field-error">{{.}}</p>
+              {{end}}
+            </div>
+
+            <div class="field">
+              <label for="new_password_confirm">新しいパスワード確認</label>
+              <input
+                id="new_password_confirm"
+                name="new_password_confirm"
+                type="password"
+                autocomplete="new-password"
+                aria-describedby="password_help"
+              >
+              {{with index .FieldErrors "new_password_confirm"}}
+                <p class="field-error">{{.}}</p>
+              {{end}}
+            </div>
+          </div>
+
+          {{if index .FieldOK "password"}}
+            <p class="field-success">変更しました。</p>
+          {{end}}
+        </section>
+
+        <div class="profile-actions">
+          <button id="profile_save_button" type="submit" class="save-button">保存</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

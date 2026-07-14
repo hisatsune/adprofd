@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <h1>AD プロフィール管理</h1>
+      <p class="description">
+        AD アカウントでログインしてください。
+      </p>
+
+      {{if .Error}}
+        <div class="error">{{.Error}}</div>
+      {{end}}
+
+      {{if .Success}}
+        <div class="success" role="status">{{.Success}}</div>
+      {{end}}
+
+      <form method="post" action="/login" class="form">
+        <label class="field">
+          <span>ユーザー名</span>
+          <input
+            type="text"
+            name="username"
+            autocomplete="username"
+            autofocus
+            required
+          >
+        </label>
+
+        <label class="field">
+          <span>パスワード</span>
+          <input
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            required
+          >
+        </label>
+
+        <button type="submit">ログイン</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
